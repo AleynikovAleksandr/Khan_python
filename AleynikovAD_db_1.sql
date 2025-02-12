@@ -1,6 +1,3 @@
-DROP DATABASE AleynikovAD_db1;
-
-
 CREATE DATABASE AleynikovAD_db1;
 USE AleynikovAD_db1;
 
