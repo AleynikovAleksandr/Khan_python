@@ -821,3 +821,136 @@ GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.InsertCheck TO 'rl_waiter'@'127.0.0.1
 GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.UpdateCheck TO 'rl_waiter'@'127.0.0.1';
 
 
+-- Извлечение названий таблиц, списка процедур и количества записей в таблицах
+select 
+    information_schema.tables.table_name as "Название таблиц",
+    group_concat(information_schema.routines.routine_name) as "Список процедур",
+    information_schema.tables.table_rows as "Кол-во записей в таблицах"
+from 
+    information_schema.tables 
+inner join information_schema.routines 
+    on information_schema.tables.table_name = substring(information_schema.routines.routine_name, 1, length(information_schema.tables.table_name))
+where 
+    table_schema = 'AleynikovAD_db1'
+group by 
+    tables.table_name, tables.table_rows
+
+union all
+
+-- Подсчет общего количества процедур и суммы количества записей во всех таблицах
+select 
+    'Количество процедур', 
+    count(information_schema.routines.routine_name),
+    (
+        select 
+            sum(information_schema.tables.table_rows) 
+        from information_schema.tables
+        where 
+            table_schema = 'AleynikovAD_db1'
+    ) 
+from information_schema.routines
+where
+    routine_type = 'PROCEDURE' 
+    and routine_name not in ('structure_create', 'structure_re_create') 
+    and routine_schema = 'AleynikovAD_db1';
+    
+    SELECT 
+    table_name, 
+    table_rows 
+FROM 
+    information_schema.tables 
+WHERE 
+    table_schema = 'AleynikovAD_db1';
+    
+
+    SELECT 
+    routine_name 
+FROM 
+    information_schema.routines 
+WHERE 
+    routine_schema = 'AleynikovAD_db1' 
+    AND routine_type = 'PROCEDURE';
+    
+-- Извлечение названий таблиц и количества записей в таблицах
+select 
+    t.table_name as "Название таблиц",
+    null as "Список процедур",
+    t.table_rows as "Кол-во записей в таблицах"
+from 
+    information_schema.tables t
+where 
+    t.table_schema = 'AleynikovAD_db1'
+
+union all
+
+-- Извлечение списка процедур
+select 
+    null as "Название таблиц",
+    r.routine_name as "Список процедур",
+    null as "Кол-во записей в таблицах"
+from 
+    information_schema.routines r
+where
+    r.routine_type = 'PROCEDURE' 
+    and r.routine_schema = 'AleynikovAD_db1'
+    and r.routine_name not in ('structure_create', 'structure_re_create')
+
+union all
+
+-- Подсчет общего количества процедур и суммы количества записей во всех таблицах
+select 
+    'Количество процедур' as "Название таблиц", 
+    count(r.routine_name) as "Список процедур",
+    (
+        select 
+            sum(t.table_rows) 
+        from information_schema.tables t
+        where 
+            t.table_schema = 'AleynikovAD_db1'
+    ) as "Кол-во записей в таблицах"
+from 
+    information_schema.routines r
+where
+    r.routine_type = 'PROCEDURE' 
+    and r.routine_schema = 'AleynikovAD_db1'
+    and r.routine_name not in ('structure_create', 'structure_re_create');
+    
+    
+ -- Основной запрос: связь таблиц с процедурами, группировка процедур в одну строку
+SELECT 
+    t.table_name AS "Название таблицы",
+    COALESCE(GROUP_CONCAT(r.routine_name ORDER BY r.routine_name SEPARATOR ', '), 'Нет процедур') AS "Список процедур",
+    COUNT(*) AS "Кол-во записей в таблицах" 
+FROM 
+    information_schema.tables t
+LEFT JOIN 
+    information_schema.routines r 
+    ON LOCATE(t.table_name, r.routine_definition) > 0
+    AND r.routine_schema = 'AleynikovAD_db1'
+    AND r.routine_type = 'PROCEDURE'
+    AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
+WHERE 
+    t.table_schema = 'AleynikovAD_db1'
+GROUP BY 
+    t.table_name, t.table_rows
+
+UNION ALL
+
+-- Подсчет общего количества процедур и суммы записей во всех таблицах
+SELECT 
+    'Количество процедур' AS "Название таблицы",
+    COUNT(r.routine_name) AS "Список процедур",
+    (SELECT SUM(IFNULL(t.table_rows, 0)) 
+     FROM information_schema.tables t
+     WHERE t.table_schema = 'AleynikovAD_db1') 
+    AS "Кол-во записей в таблицах"
+FROM 
+    information_schema.routines r
+WHERE
+    r.routine_type = 'PROCEDURE' 
+    AND r.routine_schema = 'AleynikovAD_db1'
+    AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
+
+ORDER BY 
+    "Название таблицы";
+    
