@@ -916,11 +916,11 @@ where
     and r.routine_name not in ('structure_create', 'structure_re_create');
     
     
- -- Основной запрос: связь таблиц с процедурами, группировка процедур в одну строку
-SELECT 
-    t.table_name AS "Название таблицы",
-    COALESCE(GROUP_CONCAT(r.routine_name ORDER BY r.routine_name SEPARATOR ', '), 'Нет процедур') AS "Список процедур",
-    COUNT(*) AS "Кол-во записей в таблицах" 
+
+  SELECT 
+    t.table_name AS `Название таблицы`,
+    COALESCE(GROUP_CONCAT(r.routine_name ORDER BY r.routine_name SEPARATOR ', '), 'Нет процедур') AS `Список процедур`,
+    COUNT(*) AS `Кол-во записей в таблицах`
 FROM 
     information_schema.tables t
 LEFT JOIN 
@@ -932,18 +932,27 @@ LEFT JOIN
 WHERE 
     t.table_schema = 'AleynikovAD_db1'
 GROUP BY 
-    t.table_name, t.table_rows
+    t.table_name
 
 UNION ALL
 
--- Подсчет общего количества процедур и суммы записей во всех таблицах
+-- Объединенная строка: количество процедур и общее количество записей
 SELECT 
-    'Количество процедур' AS "Название таблицы",
-    COUNT(r.routine_name) AS "Список процедур",
-    (SELECT SUM(IFNULL(t.table_rows, 0)) 
-     FROM information_schema.tables t
-     WHERE t.table_schema = 'AleynikovAD_db1') 
-    AS "Кол-во записей в таблицах"
+    'Количество процедур' AS `Название таблицы`,
+    COUNT(r.routine_name) AS `Список процедур`,
+    (SELECT SUM(subquery.`Кол-во записей в таблицах`)
+     FROM (
+         SELECT COUNT(*) AS `Кол-во записей в таблицах`
+         FROM information_schema.tables t
+         LEFT JOIN information_schema.routines r 
+         ON LOCATE(t.table_name, r.routine_definition) > 0
+         AND r.routine_schema = 'AleynikovAD_db1'
+         AND r.routine_type = 'PROCEDURE'
+         AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
+         WHERE t.table_schema = 'AleynikovAD_db1'
+         GROUP BY t.table_name
+     ) AS subquery
+    ) AS `Кол-во записей в таблицах`
 FROM 
     information_schema.routines r
 WHERE
@@ -952,5 +961,4 @@ WHERE
     AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
 
 ORDER BY 
-    "Название таблицы";
-    
+    `Название таблицы`;
