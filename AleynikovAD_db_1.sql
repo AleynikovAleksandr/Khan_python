@@ -241,9 +241,9 @@ INSERT INTO `Table` (zone_id, table_label, seat_count) VALUES
 (3, 'Ч1', 4), (3, 'Ч2', 2);
 
 INSERT INTO `Order` (order_number, check_number, employee, open_date_time, `table`, total_cost, `status`, visitor) VALUES
-(1, 1, 'of_SemenovKN', '2023-09-01 14:00:24', 10, 2890, 2, '4510665764'),
-(2, 2, 'of_DmitrievOI', '2023-09-01 16:17:37', 11, 1070, 1, '4515009426'),
-(3, 3, 'of_AndreevAA', '2023-09-03 12:10:41', 12, 4570, 2, '4678239712');
+(1, 1, 'of_SemenovKN', '2023-09-01 14:00:24', 3, 2890, 2, '4510665764'),
+(2, 2, 'of_DmitrievOI', '2023-09-01 16:17:37', 1, 1070, 1, '4515009426'),
+(3, 3, 'of_AndreevAA', '2023-09-03 12:10:41', 8, 4570, 2, '4678239712');
 
 INSERT INTO Dishes_in_Order (menu_item_id, order_number, quantity) VALUES
 (1, 1, 2),
@@ -281,10 +281,10 @@ SELECT * FROM `Order`;
 SELECT * FROM Dishes_in_Order;
 SELECT * FROM Additional_Dish;
 SELECT * FROM `Check`;
-
+DROP PROCEDURE IF EXISTS InsertZoneType;
 DELIMITER //
 
-CREATE PROCEDURE InsertZoneType(IN p_zone_type VARCHAR(50))
+CREATE PROCEDURE InsertZone_Type(IN p_zone_type VARCHAR(50))
 BEGIN
     INSERT INTO Zone_Type (zone_type) VALUES (p_zone_type);
 END //
@@ -293,7 +293,7 @@ DELIMITER ;
 
 DELIMITER //
 
-CREATE PROCEDURE UpdateZoneType(IN p_zone_type_id INT, IN p_zone_type VARCHAR(50))
+CREATE PROCEDURE UpdateZone_Type(IN p_zone_type_id INT, IN p_zone_type VARCHAR(50))
 BEGIN
     UPDATE Zone_Type
     SET zone_type = p_zone_type
@@ -304,7 +304,7 @@ DELIMITER ;
 
 DELIMITER //
 
-CREATE PROCEDURE DeleteZoneType(IN p_zone_type_id INT)
+CREATE PROCEDURE DeleteZone_Type(IN p_zone_type_id INT)
 BEGIN
     DELETE FROM Zone_Type
     WHERE zone_type_id = p_zone_type_id;
@@ -414,7 +414,7 @@ DELIMITER ;
 -- Insert
 DELIMITER //
 
-CREATE PROCEDURE InsertStatus(IN p_status VARCHAR(50))
+CREATE PROCEDURE InsertStatuses(IN p_status VARCHAR(50))
 BEGIN
     INSERT INTO Statuses (`status`) VALUES (p_status);
 END //
@@ -424,7 +424,7 @@ DELIMITER ;
 -- Update
 DELIMITER //
 
-CREATE PROCEDURE UpdateStatus(IN p_status_id INT, IN p_status VARCHAR(50))
+CREATE PROCEDURE UpdateStatuses(IN p_status_id INT, IN p_status VARCHAR(50))
 BEGIN
     UPDATE Statuses
     SET `status` = p_status
@@ -436,7 +436,7 @@ DELIMITER ;
 -- Delete
 DELIMITER //
 
-CREATE PROCEDURE DeleteStatus(IN p_status_id INT)
+CREATE PROCEDURE DeleteStatuses(IN p_status_id INT)
 BEGIN
     DELETE FROM Statuses
     WHERE status_id = p_status_id;
@@ -447,7 +447,7 @@ DELIMITER ;
 -- Insert
 DELIMITER //
 
-CREATE PROCEDURE InsertPaymentType(IN p_payment_type VARCHAR(50))
+CREATE PROCEDURE InsertPayment_Type(IN p_payment_type VARCHAR(50))
 BEGIN
     INSERT INTO Payment_Type (payment_type) VALUES (p_payment_type);
 END //
@@ -457,7 +457,7 @@ DELIMITER ;
 -- Update
 DELIMITER //
 
-CREATE PROCEDURE UpdatePaymentType(IN p_payment_id INT, IN p_payment_type VARCHAR(50))
+CREATE PROCEDURE UpdatePayment_Type(IN p_payment_id INT, IN p_payment_type VARCHAR(50))
 BEGIN
     UPDATE Payment_Type
     SET payment_type = p_payment_type
@@ -469,7 +469,7 @@ DELIMITER ;
 -- Delete
 DELIMITER //
 
-CREATE PROCEDURE DeletePaymentType(IN p_payment_id INT)
+CREATE PROCEDURE DeletePayment_Type(IN p_payment_id INT)
 BEGIN
     DELETE FROM Payment_Type
     WHERE payment_id = p_payment_id;
@@ -744,7 +744,7 @@ DELIMITER ;
 -- Insert
 DELIMITER //
 
-CREATE PROCEDURE InsertDishesInOrder(IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT)
+CREATE PROCEDURE InsertDishes_in_Order(IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT)
 BEGIN
     INSERT INTO Dishes_in_Order (menu_item_id, order_number, quantity) VALUES (p_menu_item_id, p_order_number, p_quantity);
 END //
@@ -754,7 +754,7 @@ DELIMITER ;
 -- Update
 DELIMITER //
 
-CREATE PROCEDURE UpdateDishesInOrder(IN p_id INT, IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT)
+CREATE PROCEDURE UpdateDishes_in_Order(IN p_id INT, IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT)
 BEGIN
     UPDATE Dishes_in_Order
     SET menu_item_id = p_menu_item_id, order_number = p_order_number, quantity = p_quantity
@@ -766,7 +766,7 @@ DELIMITER ;
 -- Delete
 DELIMITER //
 
-CREATE PROCEDURE DeleteDishesInOrder(IN p_id INT)
+CREATE PROCEDURE DeleteDishes_in_Order(IN p_id INT)
 BEGIN
     DELETE FROM Dishes_in_Order
     WHERE id = p_id;
@@ -777,7 +777,7 @@ DELIMITER ;
 -- Insert
 DELIMITER //
 
-CREATE PROCEDURE InsertAdditionalDish(IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT, IN p_guest VARCHAR(15))
+CREATE PROCEDURE InsertAdditional_Dish(IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT, IN p_guest VARCHAR(15))
 BEGIN
     INSERT INTO Additional_Dish (menu_item_id, order_number, quantity, guest) VALUES (p_menu_item_id, p_order_number, p_quantity, p_guest);
 END //
@@ -787,7 +787,7 @@ DELIMITER ;
 -- Update
 DELIMITER //
 
-CREATE PROCEDURE UpdateAdditionalDish(IN p_id INT, IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT, IN p_guest VARCHAR(15))
+CREATE PROCEDURE UpdateAdditional_Dish(IN p_id INT, IN p_menu_item_id INT, IN p_order_number INT, IN p_quantity INT, IN p_guest VARCHAR(15))
 BEGIN
     UPDATE Additional_Dish
     SET menu_item_id = p_menu_item_id, order_number = p_order_number, quantity = p_quantity, guest = p_guest
@@ -799,7 +799,7 @@ DELIMITER ;
 -- Delete
 DELIMITER //
 
-CREATE PROCEDURE DeleteAdditionalDish(IN p_id INT)
+CREATE PROCEDURE DeleteAdditional_Dish(IN p_id INT)
 BEGIN
     DELETE FROM Additional_Dish
     WHERE id = p_id;
@@ -815,150 +815,44 @@ GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.UpdateVisitor TO 'rl_visitor'@'127.0.
 
 GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.InsertOrder TO 'rl_waiter'@'127.0.0.1';
 GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.UpdateOrder TO 'rl_waiter'@'127.0.0.1';
-GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.InsertDishesInOrder TO 'rl_waiter'@'127.0.0.1';
-GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.UpdateDishesInOrder TO 'rl_waiter'@'127.0.0.1';
+GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.InsertDishes_in_Order TO 'rl_waiter'@'127.0.0.1';
+GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.UpdateDishes_in_Order TO 'rl_waiter'@'127.0.0.1';
 GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.InsertCheck TO 'rl_waiter'@'127.0.0.1';
 GRANT EXECUTE ON PROCEDURE AleynikovAD_db1.UpdateCheck TO 'rl_waiter'@'127.0.0.1';
 
-
--- Извлечение названий таблиц, списка процедур и количества записей в таблицах
-select 
-    information_schema.tables.table_name as "Название таблиц",
-    group_concat(information_schema.routines.routine_name) as "Список процедур",
-    information_schema.tables.table_rows as "Кол-во записей в таблицах"
-from 
-    information_schema.tables 
-inner join information_schema.routines 
-    on information_schema.tables.table_name = substring(information_schema.routines.routine_name, 1, length(information_schema.tables.table_name))
-where 
-    table_schema = 'AleynikovAD_db1'
-group by 
-    tables.table_name, tables.table_rows
-
-union all
-
--- Подсчет общего количества процедур и суммы количества записей во всех таблицах
-select 
-    'Количество процедур', 
-    count(information_schema.routines.routine_name),
-    (
-        select 
-            sum(information_schema.tables.table_rows) 
-        from information_schema.tables
-        where 
-            table_schema = 'AleynikovAD_db1'
-    ) 
-from information_schema.routines
-where
-    routine_type = 'PROCEDURE' 
-    and routine_name not in ('structure_create', 'structure_re_create') 
-    and routine_schema = 'AleynikovAD_db1';
-    
-    SELECT 
-    table_name, 
-    table_rows 
-FROM 
-    information_schema.tables 
-WHERE 
-    table_schema = 'AleynikovAD_db1';
-    
-
-    SELECT 
-    routine_name 
-FROM 
-    information_schema.routines 
-WHERE 
-    routine_schema = 'AleynikovAD_db1' 
-    AND routine_type = 'PROCEDURE';
-    
--- Извлечение названий таблиц и количества записей в таблицах
-select 
+    select 
     t.table_name as "Название таблиц",
-    null as "Список процедур",
+    group_concat(r.routine_name) as "Список процедур",
     t.table_rows as "Кол-во записей в таблицах"
 from 
     information_schema.tables t
+    left join information_schema.routines r
+        on t.table_name = substring(r.routine_name, 7, length(t.table_name))
+        and r.routine_type = 'PROCEDURE'
+        and r.routine_schema = 'AleynikovAD_db1'
 where 
     t.table_schema = 'AleynikovAD_db1'
+group by 
+    t.table_name, t.table_rows
 
 union all
 
--- Извлечение списка процедур
 select 
-    null as "Название таблиц",
-    r.routine_name as "Список процедур",
-    null as "Кол-во записей в таблицах"
-from 
-    information_schema.routines r
+    'Количество процедур', 
+    count(r.routine_name),
+    (select 
+        sum(t.table_rows) 
+    from information_schema.tables t
+    where 
+        t.table_schema = 'AleynikovAD_db1')
+from information_schema.routines r
 where
     r.routine_type = 'PROCEDURE' 
-    and r.routine_schema = 'AleynikovAD_db1'
-    and r.routine_name not in ('structure_create', 'structure_re_create')
-
-union all
-
--- Подсчет общего количества процедур и суммы количества записей во всех таблицах
-select 
-    'Количество процедур' as "Название таблиц", 
-    count(r.routine_name) as "Список процедур",
-    (
-        select 
-            sum(t.table_rows) 
-        from information_schema.tables t
-        where 
-            t.table_schema = 'AleynikovAD_db1'
-    ) as "Кол-во записей в таблицах"
-from 
-    information_schema.routines r
-where
-    r.routine_type = 'PROCEDURE' 
-    and r.routine_schema = 'AleynikovAD_db1'
-    and r.routine_name not in ('structure_create', 'structure_re_create');
+    and r.routine_name not in ('structure_create','structure_re_create') 
+    and r.routine_schema = 'AleynikovAD_db1';
     
     
-
-  SELECT 
-    t.table_name AS `Название таблицы`,
-    COALESCE(GROUP_CONCAT(r.routine_name ORDER BY r.routine_name SEPARATOR ', '), 'Нет процедур') AS `Список процедур`,
-    COUNT(*) AS `Кол-во записей в таблицах`
-FROM 
-    information_schema.tables t
-LEFT JOIN 
-    information_schema.routines r 
-    ON LOCATE(t.table_name, r.routine_definition) > 0
-    AND r.routine_schema = 'AleynikovAD_db1'
-    AND r.routine_type = 'PROCEDURE'
-    AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
-WHERE 
-    t.table_schema = 'AleynikovAD_db1'
-GROUP BY 
-    t.table_name
-
-UNION ALL
-
--- Объединенная строка: количество процедур и общее количество записей
-SELECT 
-    'Количество процедур' AS `Название таблицы`,
-    COUNT(r.routine_name) AS `Список процедур`,
-    (SELECT SUM(subquery.`Кол-во записей в таблицах`)
-     FROM (
-         SELECT COUNT(*) AS `Кол-во записей в таблицах`
-         FROM information_schema.tables t
-         LEFT JOIN information_schema.routines r 
-         ON LOCATE(t.table_name, r.routine_definition) > 0
-         AND r.routine_schema = 'AleynikovAD_db1'
-         AND r.routine_type = 'PROCEDURE'
-         AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
-         WHERE t.table_schema = 'AleynikovAD_db1'
-         GROUP BY t.table_name
-     ) AS subquery
-    ) AS `Кол-во записей в таблицах`
-FROM 
-    information_schema.routines r
-WHERE
-    r.routine_type = 'PROCEDURE' 
-    AND r.routine_schema = 'AleynikovAD_db1'
-    AND r.routine_name NOT IN ('structure_create', 'structure_re_create')
-
-ORDER BY 
-    `Название таблицы`;
+    
+    
+    
+    
