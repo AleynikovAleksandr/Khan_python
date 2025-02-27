@@ -19,7 +19,7 @@ class ArraySum:
 
 if __name__ == "__main__":
     try:
-        data_array = [1, 2, 3, 4, 5]
+        data_array = [-1, 0, 7, 10, -5,]
         array_sum = ArraySum(data_array)
         
         # Вывод самого массива перед вычислением суммы
