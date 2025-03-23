@@ -1,6 +1,5 @@
-drop database AleynikovAD_db2;
-CREATE DATABASE AleynikovAD_db2;
-USE AleynikovAD_db2;
+CREATE DATABASE AleynikovAD_db1;
+USE AleynikovAD_db1;
 
 CREATE TABLE Zone_Type (
     zone_type_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -1188,33 +1187,108 @@ DELIMITER ;
 
 CALL DeleteIngredient(9);
 
-DROP PROCEDURE IF EXISTS CheckAndInsertComposition;
+
+DROP PROCEDURE IF EXISTS Check_Existing_Ingredient;
+
 DELIMITER $$
 
-CREATE PROCEDURE CheckAndInsertComposition (
-    IN p_menu_id INT, 
-    IN p_ingredient_id INT
+CREATE PROCEDURE Check_Existing_Ingredient (
+    IN p_menu_name VARCHAR(100), 
+    IN p_ingredient_name VARCHAR(100)
 )
 BEGIN
-    DECLARE p_Exist_Combination INT;
+    DECLARE v_menu_id INT;
+    DECLARE v_ingredient_id INT;
+    DECLARE p_Exist_Combination SMALLINT;
 
-    -- Проверяем, существует ли уже связь между блюдом и ингредиентом
-    SELECT COUNT(*) INTO p_Exist_Combination 
-    FROM Composition
-    WHERE menu_id = p_menu_id 
-      AND ingredient_id = p_ingredient_id;
-
-    -- Если связь уже существует, выдаем ошибку
-    IF (p_Exist_Combination > 0) THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Указанный ингредиент уже есть у указанного блюда!';
-    ELSE
-        -- Если связи нет, добавляем новую запись
-        INSERT INTO Composition (ingredient_id ,menu_id )
-        VALUES (p_ingredient_id , p_menu_id);
+    -- Проверка существования блюда и получение его ID
+    SELECT menu_id INTO v_menu_id FROM Menu WHERE menu_name = p_menu_name;
+    IF v_menu_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Указанное блюдо не существует!';
     END IF;
-END$$
+
+    -- Проверка существования ингредиента и получение его ID
+    SELECT ingredient_id INTO v_ingredient_id FROM Ingredient WHERE ingredient_name = p_ingredient_name;
+    IF v_ingredient_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Указанный ингредиент не существует!';
+    END IF;
+
+    -- Проверка существования комбинации
+    SELECT COUNT(*) INTO p_Exist_Combination 
+    FROM Composition 
+    WHERE menu_id = v_menu_id AND ingredient_id = v_ingredient_id;
+
+    -- Обработка результата
+    IF p_Exist_Combination > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Указанный ингредиент уже есть у указанного блюда!';
+    ELSE
+        SIGNAL SQLSTATE '01000' SET MESSAGE_TEXT = 'Ингредиент отсутствует в блюде';
+    END IF;
+END $$
+
+DELIMITER ;
+CALL Check_Existing_Ingredient('Мясная тарелка', 'Куриные крылья');
+
+
+DROP PROCEDURE IF EXISTS Recalculate_Order_Total;
+
+DELIMITER $$
+
+CREATE PROCEDURE Recalculate_Order_Total (
+    IN p_order_number INT,          -- Код-ключ заказа
+    IN p_menu_item_id INT,          -- Код-ключ блюда
+    IN p_quantity INT               -- Количество позиции
+)
+BEGIN
+    DECLARE v_menu_price DECIMAL(10,2);  -- Цена блюда
+    DECLARE v_total_cost DECIMAL(10,2);  -- Общая стоимость заказа
+    DECLARE v_order_exists INT;          -- Проверка существования заказа
+    DECLARE v_menu_exists INT;           -- Проверка существования блюда
+
+    -- Проверка существования заказа
+    SELECT COUNT(*) INTO v_order_exists 
+    FROM `Order` 
+    WHERE order_number = p_order_number;
+
+    IF v_order_exists = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Указанный заказ не существует!';
+    END IF;
+
+    -- Проверка существования блюда
+    SELECT COUNT(*) INTO v_menu_exists 
+    FROM Menu 
+    WHERE menu_id = p_menu_item_id;
+
+    IF v_menu_exists = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Указанное блюдо не существует!';
+    END IF;
+
+    -- Получение цены блюда
+    SELECT price INTO v_menu_price 
+    FROM Menu 
+    WHERE menu_id = p_menu_item_id;
+
+    -- Добавление новой позиции в заказ
+    INSERT INTO Dishes_in_Order (menu_item_id, order_number, quantity)
+    VALUES (p_menu_item_id, p_order_number, p_quantity);
+
+    -- Пересчет общей стоимости заказа
+    SELECT SUM(m.price * dio.quantity) INTO v_total_cost
+    FROM Dishes_in_Order dio
+    JOIN Menu m ON dio.menu_item_id = m.menu_id
+    WHERE dio.order_number = p_order_number;
+
+    -- Обновление общей стоимости заказа
+    UPDATE `Order`
+    SET total_cost = v_total_cost
+    WHERE order_number = p_order_number;
+
+    -- Возврат новой общей стоимости
+    SELECT v_total_cost AS 'Новая общая стоимость заказа';
+END $$
 
 DELIMITER ;
 
-CALL CheckAndInsertComposition(4, 9);
+CALL Recalculate_Order_Total(1, 5, 1);  
