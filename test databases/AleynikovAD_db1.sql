@@ -1081,29 +1081,38 @@ where
     and r.routine_name not in ('structure_create','structure_re_create') 
     and r.routine_schema = 'AleynikovAD_db1';
     
-DROP PROCEDURE IF EXISTS Check_Existing_Table;
+    
+    
+DELIMITER //
 
-DELIMITER $$
-
-CREATE PROCEDURE Check_Existing_Table (
-    IN p_table_label VARCHAR(50)  
+CREATE PROCEDURE InsertTable(
+    IN p_table_label VARCHAR(50),
+    IN p_zone_id INT,
+    IN p_seat_count INT
 )
 BEGIN
-    DECLARE v_table_exists INT;  
+    DECLARE table_exists INT;
 
-    SELECT COUNT(*) INTO v_table_exists 
-    FROM `Table` 
+    -- Проверка существования стола с указанным номером
+    SELECT COUNT(*) INTO table_exists
+    FROM `Table`
     WHERE table_label = p_table_label;
 
-    IF v_table_exists > 0 THEN
-        SIGNAL SQLSTATE '45000' 
+    IF table_exists > 0 THEN
+        -- Если стол с таким номером уже существует, выводим сообщение об ошибке
+        SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Указанный стол уже есть в таблице!';
+    ELSE
+        -- Если стола с таким номером нет, вставляем новый стол
+        INSERT INTO `Table` (zone_id, table_label, seat_count)
+        VALUES (p_zone_id, p_table_label, p_seat_count);
     END IF;
-END $$
+END //
 
-DELIMITER ;
+DELIMITER ;    
+    
+CALL InsertTable('Д2', 1, 4);   
 
-CALL Check_Existing_Table('ОБ1');
 
 DROP PROCEDURE IF EXISTS InsertReservation_Order;
 DELIMITER $$
