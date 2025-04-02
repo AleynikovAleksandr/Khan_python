@@ -733,7 +733,3 @@ GROUP BY
     m.menu_id, m.menu_name, m.weight
 ORDER BY 
     m.weight;
-    
-    
-    
-    
