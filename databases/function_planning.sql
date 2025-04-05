@@ -344,3 +344,127 @@ END //
 DELIMITER ;
 
 SELECT GetOrderDetails(1) AS 'Детали заказа';
+
+-- Задание 10: Три наименее заказываемых блюда (по общему количеству порций)
+SELECT 
+    m.menu_name AS `Блюдо`,
+    SUM(dio.quantity) AS `Количество заказов`
+FROM Menu m
+JOIN Dishes_in_Order dio ON m.menu_id = dio.menu_item_id
+GROUP BY m.menu_id
+ORDER BY `Количество заказов` DESC
+LIMIT 3;
+
+-- Задание 11: ФИО сотрудников и суммы стоимости их заказов
+SELECT 
+    CONCAT(w.last_name, ' ', w.first_name, ' ', IFNULL(w.middle_name, '')) AS 'ФИО сотрудника',
+    SUM(o.total_cost) AS 'Сумма стоимости заказов'
+FROM 
+    Waiter w
+    JOIN `Order` o ON w.login = o.employee
+GROUP BY 
+    w.login, w.last_name, w.first_name, w.middle_name
+ORDER BY 
+    SUM(o.total_cost) DESC;
+    
+-- Задание 12: вывода блюд с учетом НДС  
+SELECT 
+    menu_name AS 'Название блюда',
+    price AS 'Базовая стоимость',
+    ROUND(price * 1.2, 2) AS 'Стоимость с НДС (20%)'
+FROM 
+    Menu
+ORDER BY 
+    menu_name;
+    
+-- Задание 13: вывода заказов с позициями блюд
+SELECT 
+    o.order_number AS 'Номер заказа',
+    DATE_FORMAT(o.open_date_time, '%d.%m.%Y %H:%i') AS 'Дата создания заказа',
+    GROUP_CONCAT(
+        CONCAT(m.menu_name, ' (', dio.quantity, ' шт.)') 
+        SEPARATOR ', '
+    ) AS 'Позиции в заказе',
+    COUNT(dio.id) AS 'Количество позиций'
+FROM 
+    `Order` o
+    JOIN Dishes_in_Order dio ON o.order_number = dio.order_number
+    JOIN Menu m ON dio.menu_item_id = m.menu_id
+GROUP BY 
+    o.order_number, o.open_date_time
+ORDER BY 
+    o.order_number;
+
+-- Задание 14: для вывода номеров кассовых чеков без префикса "КЧ-" и нулей
+SELECT 
+    REPLACE(REPLACE(check_number, 'КЧ-', ''), '0', '') AS 'Номер чека без префикса и нулей'
+FROM 
+    `Check`;
+    
+-- Задание 15: вывода блюд с ингредиентами в нижнем регистре
+SELECT 
+    m.menu_name AS 'Название блюда',
+    GROUP_CONCAT(LOWER(i.ingredient_name) SEPARATOR ', ') AS 'Ингредиенты (в нижнем регистре)'
+FROM 
+    Menu m
+    JOIN Composition c ON m.menu_id = c.menu_id
+    JOIN Ingredient i ON c.ingredient_id = i.ingredient_id
+GROUP BY 
+    m.menu_id, m.menu_name
+ORDER BY 
+    m.menu_name;
+    
+-- Задание 16: вывода номера заказа с разбивкой даты на компоненты
+SELECT 
+    order_number AS 'Номер заказа',
+    DAY(open_date_time) AS 'День',
+    MONTH(open_date_time) AS 'Месяц',
+    HOUR(open_date_time) AS 'Час'
+FROM 
+    `Order`
+ORDER BY 
+    order_number;
+  
+-- Задание 17:  позиции в заказе и  разницу в минутах
+SELECT 
+    o.order_number AS 'Номер заказа',
+    m.menu_name AS 'Позиция в заказе',
+    TIMESTAMPDIFF(MINUTE, o.open_date_time, ch.date_time) AS 'Время приготовления (минуты)'
+FROM 
+    `Order` o
+    JOIN `Check` ch ON o.check_number = ch.check_number
+    JOIN Dishes_in_Order dio ON o.order_number = dio.order_number
+    JOIN Menu m ON dio.menu_item_id = m.menu_id
+ORDER BY 
+    o.order_number, m.menu_name;
+    
+-- Задание 18: вывода самого дешёвого заказа  
+SELECT 
+    o.order_number AS 'Номер заказа',
+    CONCAT(v.last_name, ' ', v.first_name, ' ', IFNULL(v.middle_name, '')) AS 'ФИО клиента',
+    o.total_cost AS 'Сумма заказа'
+FROM 
+    `Order` o
+    JOIN Visitor v ON o.visitor = v.passport
+ORDER BY 
+    o.total_cost ASC
+LIMIT 1;
+
+-- Задание 19: уникальные названия ингредиентов. 
+SELECT DISTINCT ingredient_name FROM Ingredient;
+
+-- Задание 20: расчета заработка сотрудников с учетом комиссий и налогов
+SELECT 
+    CONCAT(w.last_name, ' ', w.first_name, ' ', IFNULL(w.middle_name, '')) AS 'ФИО сотрудника',
+    COUNT(o.order_number) AS 'Количество заказов',
+    SUM(o.total_cost) AS 'Общая сумма заказов',
+    ROUND(SUM(o.total_cost) * 0.15, 2) AS '15% от суммы заказов',
+    ROUND(SUM(o.total_cost) * 0.15 * 0.87, 2) AS 'На руки (после НДФЛ 13%)'
+FROM 
+    Waiter w
+    LEFT JOIN `Order` o ON w.login = o.employee
+GROUP BY 
+    w.login, w.last_name, w.first_name, w.middle_name
+ORDER BY 
+    COUNT(o.order_number) DESC;
+
