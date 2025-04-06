@@ -76,7 +76,7 @@ CREATE TABLE Visitor (
     first_name VARCHAR(50) NOT NULL,
     middle_name VARCHAR(50) DEFAULT NULL,
     bank_card_number VARCHAR(16) NOT NULL,
-    login VARCHAR(50) NOT NULL,
+    login VARCHAR(50) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL
 );
 
@@ -88,6 +88,11 @@ CREATE TABLE Waiter (
     `password` VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE Reservation_Statuses (
+    status_id INT PRIMARY KEY AUTO_INCREMENT,
+    reservation_status VARCHAR(50) NOT NULL
+);
+
 CREATE TABLE `Check` (
     check_number INT PRIMARY KEY AUTO_INCREMENT,
     date_time DATETIME NOT NULL,
@@ -96,6 +101,18 @@ CREATE TABLE `Check` (
     total_amount DECIMAL(10,2) NOT NULL,
     `change` DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (payment_type) REFERENCES Payment_Type(payment_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE Reservation_Order (
+    reservation_id VARCHAR(50) PRIMARY KEY, 
+    client_login VARCHAR(50) NOT NULL, 
+    creation_date DATETIME NOT NULL, 
+    visit_date DATE NOT NULL, 
+    visit_time TIME NOT NULL, 
+    guest_count INT NOT NULL, 
+    status_id INT NOT NULL, 
+    FOREIGN KEY (client_login) REFERENCES Visitor(login) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES Reservation_Statuses(status_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE `Order` (
@@ -134,7 +151,24 @@ CREATE TABLE Additional_Dish (
     FOREIGN KEY (guest) REFERENCES Guest(phone_number) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Индексы
+CREATE TABLE Reservation_Tables (
+    reservation_id VARCHAR(50) NOT NULL, 
+    table_id INT NOT NULL, 
+    PRIMARY KEY (reservation_id, table_id), 
+    FOREIGN KEY (reservation_id) REFERENCES Reservation_Order(reservation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (table_id) REFERENCES `Table`(table_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE Reservation_Menu (
+    reservation_menu_id INT PRIMARY KEY AUTO_INCREMENT, 
+    reservation_id VARCHAR(50) NOT NULL, 
+    menu_item_id INT NOT NULL, 
+    serving_time TIME NOT NULL, 
+    quantity INT NOT NULL, 
+    FOREIGN KEY (reservation_id) REFERENCES Reservation_Order(reservation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (menu_item_id) REFERENCES Menu(menu_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE INDEX idx_table_label ON `Table` (table_label);
 CREATE INDEX idx_last_first_name_visitor ON Visitor (last_name, first_name);
 CREATE INDEX idx_last_first_name_waiter ON Waiter (last_name, first_name);
@@ -152,28 +186,6 @@ CREATE INDEX idx_menu_item_id ON Dishes_in_Order (menu_item_id);
 CREATE INDEX idx_order_number ON Dishes_in_Order (order_number);
 CREATE INDEX idx_status ON Statuses (`status`);
 
--- Пользователи и привилегии
-CREATE USER rl_administrator@'127.0.0.1' IDENTIFIED BY 'Pa$$w0rd';
-CREATE USER rl_visitor@'127.0.0.1' IDENTIFIED BY 'Pa$$w0rd';
-CREATE USER rl_waiter@'127.0.0.1' IDENTIFIED BY 'Pa$$w0rd';
-
-GRANT ALL PRIVILEGES ON AleynikovAD_db1.* TO 'rl_administrator'@'127.0.0.1';
-
-GRANT SELECT, INSERT, UPDATE ON AleynikovAD_db1.Visitor TO 'rl_visitor'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.Menu TO 'rl_visitor'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.Zone_Type TO 'rl_visitor'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.`Table` TO 'rl_visitor'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.Statuses TO 'rl_visitor'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.Payment_Type TO 'rl_visitor'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.Ingredient TO 'rl_visitor'@'127.0.0.1';
-
-GRANT SELECT, INSERT, UPDATE ON AleynikovAD_db1.`Order` TO 'rl_waiter'@'127.0.0.1';
-GRANT SELECT, INSERT, UPDATE ON AleynikovAD_db1.Dishes_in_Order TO 'rl_waiter'@'127.0.0.1';
-GRANT SELECT, INSERT, UPDATE ON AleynikovAD_db1.`Check` TO 'rl_waiter'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.Menu TO 'rl_waiter'@'127.0.0.1';
-GRANT SELECT ON AleynikovAD_db1.`Table` TO 'rl_waiter'@'127.0.0.1';
-
-
 INSERT INTO Zone_Type (zone_type) VALUES ('Общая зона'), ('Детская зона'), ('Частная зона');
 
 INSERT INTO Waiter (login, last_name, first_name, middle_name, `password`) VALUES
@@ -181,10 +193,16 @@ INSERT INTO Waiter (login, last_name, first_name, middle_name, `password`) VALUE
 ('of_AndreevAA', 'Андреев', 'Андрей', 'Андреевич', 'Pa$$w0rd'),
 ('of_DmitrievOI', 'Дмитриев', 'Олег', 'Иванович', 'Pa$$w0rd');
 
+
 INSERT INTO Visitor (passport, last_name, first_name, middle_name, bank_card_number, login, `password`) VALUES
 ('4510665764', 'Иванов', 'Иван', 'Иванович', '4825773177881752', 'IvanovII', 'Pa$$w0rd'),
 ('4678239712', 'Петров', 'Алексей', 'Алексеевич', '565211479921', 'PetrovAA', 'Pa$$w0rd'),
 ('4515009426', 'Павлов', 'Евгений', 'Геннадьевич', '313477425677', 'PavlovEG', 'Pa$$w0rd');
+
+INSERT INTO Reservation_Statuses (reservation_status) VALUES 
+('Активна'), 
+('Отменена'), 
+('Завершена'); 
 
 INSERT INTO Guest (phone_number, last_name, first_name, middle_name) VALUES
 ('1234567890', 'Фёдоров', 'Владимир', 'Алексеевич'),
@@ -235,15 +253,23 @@ INSERT INTO `Check` (check_number, date_time, payment_type, amount_paid, total_a
 (2, '2023-09-03 15:21:47', 2, 5484, 5484, 0),
 (3, '2023-09-04 20:02:52', 1, 3000, 2700, 300);
 
+INSERT INTO Reservation_Order (reservation_id, client_login, creation_date, visit_date, visit_time, guest_count, status_id)
+VALUES
+    ('БР/24/0000000001', 'IvanovII', '2024-01-01 16:01:10', '2024-02-02', '12:00:00', 2, 1), 
+    ('БР/24/0000000002', 'PetrovAA', '2024-01-20 09:50:21', '2024-02-19', '16:30:00', 8, 1), 
+    ('БР/24/0000000003', 'IvanovII', '2024-01-20 17:09:25', '2024-02-10', '12:45:00', 1, 1), 
+    ('БР/24/0000000004', 'PetrovAA', '2024-02-02 18:00:35', '2024-02-06', '17:20:00', 2, 1), 
+    ('БР/24/0000000005', 'PetrovAA', '2024-02-10 15:43:59', '2024-02-11', '13:00:00', 4, 1); 
+
 INSERT INTO `Table` (zone_id, table_label, seat_count) VALUES
 (1, 'ОБ1', 4), (1, 'ОБ2', 4), (1, 'ОБ3', 2), (1, 'ОБ4', 2),
 (2, 'Д1', 5), (2, 'Д2', 5), (2, 'Д3', 5),
 (3, 'Ч1', 4), (3, 'Ч2', 2);
 
 INSERT INTO `Order` (order_number, check_number, employee, open_date_time, `table`, total_cost, `status`, visitor) VALUES
-(1, 1, 'of_SemenovKN', '2023-09-01 14:00:24', 10, 2890, 2, '4510665764'),
-(2, 2, 'of_DmitrievOI', '2023-09-01 16:17:37', 11, 1070, 1, '4515009426'),
-(3, 3, 'of_AndreevAA', '2023-09-03 12:10:41', 12, 4570, 2, '4678239712');
+(1, 1, 'of_SemenovKN', '2023-09-01 14:00:24', 3, 2890, 2, '4510665764'),
+(2, 2, 'of_DmitrievOI', '2023-09-01 16:17:37', 1, 1070, 1, '4515009426'),
+(3, 3, 'of_AndreevAA', '2023-09-03 12:10:41', 8, 4570, 2, '4678239712');
 
 INSERT INTO Dishes_in_Order (menu_item_id, order_number, quantity) VALUES
 (1, 1, 2),
@@ -264,9 +290,26 @@ INSERT INTO Additional_Dish (menu_item_id, order_number, quantity, guest) VALUES
 (1, 3, 1, '0987654321'),
 (4, 3, 1, '1122334455');
 
--- Проверка наличия данных в таблицах
+INSERT INTO Reservation_Tables (reservation_id, table_id) VALUES
+('БР/24/0000000001', 9), 
+('БР/24/0000000002', 1), 
+('БР/24/0000000002', 2), 
+('БР/24/0000000003', 3), 
+('БР/24/0000000004', 4), 
+('БР/24/0000000005', 8); 
+
+INSERT INTO Reservation_Menu (reservation_id, menu_item_id, quantity, serving_time) VALUES
+('БР/24/0000000001', 1, 4, '12:00:00'), 
+('БР/24/0000000001', 4, 2, '13:00:00'), 
+('БР/24/0000000002', 5, 3, '16:30:00'), 
+('БР/24/0000000002', 6, 5, '17:00:00'), 
+('БР/24/0000000003', 6, 1, '12:45:00'), 
+('БР/24/0000000003', 3, 2, '12:45:00'), 
+('БР/24/0000000004', 2, 2, '17:40:00'), 
+('БР/24/0000000005', 1, 2, '13:00:00'), 
+('БР/24/0000000005', 4, 2, '14:00:00'); 
+
 SELECT * FROM Zone_Type;
-SELECT * FROM `Table`;
 SELECT * FROM Waiter;
 SELECT * FROM Visitor;
 SELECT * FROM Guest;
@@ -277,7 +320,43 @@ SELECT * FROM Supplier;
 SELECT * FROM Estimate;
 SELECT * FROM Statuses;
 SELECT * FROM Payment_Type;
+SELECT * FROM `Check`;
+SELECT * FROM `Table`;
 SELECT * FROM `Order`;
 SELECT * FROM Dishes_in_Order;
 SELECT * FROM Additional_Dish;
-SELECT * FROM `Check`;
+SELECT * FROM Reservation_Statuses;
+SELECT * FROM Reservation_Order;
+SELECT * FROM Reservation_Tables;
+SELECT * FROM Reservation_Menu;
+
+    select 
+    t.table_name as "Название таблиц",
+    group_concat(r.routine_name) as "Список процедур",
+    t.table_rows as "Кол-во записей в таблицах"
+from 
+    information_schema.tables t
+    left join information_schema.routines r
+        on t.table_name = substring(r.routine_name, 7, length(t.table_name))
+        and r.routine_type = 'PROCEDURE'
+        and r.routine_schema = 'AleynikovAD_db1'
+where 
+    t.table_schema = 'AleynikovAD_db1'
+group by 
+    t.table_name, t.table_rows
+
+union all
+
+select 
+    'Количество процедур', 
+    count(r.routine_name),
+    (select 
+        sum(t.table_rows) 
+    from information_schema.tables t
+    where 
+        t.table_schema = 'AleynikovAD_db1')
+from information_schema.routines r
+where
+    r.routine_type = 'PROCEDURE' 
+    and r.routine_name not in ('structure_create','structure_re_create') 
+    and r.routine_schema = 'AleynikovAD_db1';
