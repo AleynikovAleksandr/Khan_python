@@ -4,8 +4,15 @@ from typing import List, Tuple
 
 class BinarySearch:
     def __init__(self, array: List[int]):
+        self.validate_array(array)
         self.original_array = array
         self.sorted_array: List[Tuple[int, int]] = sorted((val, idx) for idx, val in enumerate(array))
+
+    def validate_array(self, array):
+        if not isinstance(array, list):
+            raise ValueError("Массив должен быть списком.")
+        if not array:
+            raise ValueError("Массив не должен быть пустым.")
 
     def binary_search(self, target: int, find_first: bool) -> int:
         left = bisect.bisect_left(self.sorted_array, (target, -1))
