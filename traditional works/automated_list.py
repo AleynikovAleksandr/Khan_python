@@ -1,44 +1,44 @@
 class CustomLinkedList:
     def __init__(self):
-        self._data = []
+        self._data1 = []
 
-    def insert(self, data):
+    def insert(self, data1):
         """Вставить узел в голову списка"""
-        self._data.insert(0, data)
+        self._data1.insert(0, data1)
 
-    def append(self, data):
+    def append(self, data1):
         """Вставить узел в хвост списка"""
-        self._data.append(data)
+        self._data1.append(data1)
 
     def remove(self):
         """Удалить узел из головы списка"""
-        if not self._data:
+        if not self._data1:
             raise IndexError("Удаление из пустого списка невозможно")
-        self._data.pop(0)
+        self._data1.pop(0)
 
     def delete(self):
         """Удалить узел из хвоста списка"""
-        if not self._data:
+        if not self._data1:
             raise IndexError("Удаление из пустого списка невозможно")
-        self._data.pop()
+        self._data1.pop()
 
     def iterate(self):
         """Напечатать все узлы списка"""
-        for item in self._data:
+        for item in self._data1:
             print(item, end=' ')
         print()
 
     def size(self):
         """Возвращает длину списка"""
-        return len(self._data)
+        return len(self._data1)
 
     def __str__(self):
         """Возвращает строковое представление списка"""
-        return ' '.join(str(item) for item in self._data)
+        return ' '.join(str(item) for item in self._data1)
 
     def __len__(self):
         """Возвращает длину списка"""
-        return len(self._data)
+        return len(self._data1)
 
     def __iter__(self):
         """Возвращает итератор для списка"""
@@ -47,8 +47,8 @@ class CustomLinkedList:
 
     def __next__(self):
         """Возвращает следующий элемент итерации"""
-        if self._index < len(self._data):
-            result = self._data[self._index]
+        if self._index < len(self._data1):
+            result = self._data1[self._index]
             self._index += 1
             return result
         else:
@@ -79,11 +79,11 @@ class LinkedListFacade:
     def __init__(self, singleton=False):
         self.linked_list = LinkedListFactory().create_linked_list(singleton)
 
-    def insert(self, data):
-        self.linked_list.insert(data)
+    def insert(self, data1):
+        self.linked_list.insert(data1)
 
-    def append(self, data):
-        self.linked_list.append(data)
+    def append(self, data1):
+        self.linked_list.append(data1)
 
     def remove(self):
         self.linked_list.remove()
@@ -103,25 +103,25 @@ class LinkedListFacade:
 
 
 if __name__ == "__main__":
-    data_list = LinkedListFacade(singleton=True)
+    data1_list = LinkedListFacade(singleton=True)
 
-    data_list.insert(3)
-    data_list.insert(2)
-    data_list.insert(1)
+    data1_list.insert(3)
+    data1_list.insert(2)
+    data1_list.insert(1)
     print("Список после вставки в голову:")
-    print(data_list)
+    print(data1_list)
 
-    data_list.append(4)
-    data_list.append(5)
+    data1_list.append(4)
+    data1_list.append(5)
     print("Список после вставки в хвост:")
-    print(data_list)
+    print(data1_list)
 
-    data_list.remove()
+    data1_list.remove()
     print("Список после удаления из головы:")
-    print(data_list)
+    print(data1_list)
 
-    data_list.delete()
+    data1_list.delete()
     print("Список после удаления из хвоста:")
-    print(data_list)
+    print(data1_list)
 
-    print("Размер списка:", data_list.size())
+    print("Размер списка:", data1_list.size())
