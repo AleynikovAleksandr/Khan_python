@@ -108,18 +108,79 @@ END$$
 
 DELIMITER ;
 
+-- 3 Trigger to delete order
+DROP TRIGGER IF EXISTS trg_after_dishes_in_order_delete;
+DELIMITER $$
+
+CREATE TRIGGER trg_after_dishes_in_order_delete
+AFTER DELETE ON Dishes_in_Order
+FOR EACH ROW
+BEGIN
+    DECLARE full_name_employee VARCHAR(100);
+    DECLARE full_name_visitor VARCHAR(100);
+    DECLARE order_total DECIMAL(10,2);
+    DECLARE dish_name VARCHAR(100);
+
+    -- Получаем название блюда
+    SELECT menu_name INTO dish_name
+    FROM Menu
+    WHERE menu_id = OLD.menu_item_id;
+
+    -- Получаем ФИО сотрудника и посетителя
+    SELECT 
+        CONCAT(w.last_name, ' ', w.first_name, ' ', COALESCE(w.middle_name, '')) AS full_name_employee,
+        CONCAT(v.last_name, ' ', v.first_name, ' ', COALESCE(v.middle_name, '')) AS full_name_visitor
+    INTO 
+        full_name_employee,
+        full_name_visitor
+    FROM `Order` o
+    JOIN Waiter w ON o.employee = w.login
+    JOIN Visitor v ON o.visitor = v.passport
+    WHERE o.order_number = OLD.order_number;
+
+    -- Сохраняем общую стоимость заказа в переменную order_total
+    SELECT total_cost INTO order_total 
+    FROM `Order`
+    WHERE order_number = OLD.order_number;
+
+    -- Вставляем единую запись в лог
+    INSERT INTO Order_Log (
+        order_number, employee, visitor, dish_name, quantity, total_cost, log_date_time, action_type
+    )
+    VALUES (
+        OLD.order_number,
+        full_name_employee,
+        full_name_visitor,
+        dish_name,
+        OLD.quantity,
+        order_total,
+        NOW(),
+        'запись удалена'
+    );
+
+    -- Удаляем заказ, если это было последнее блюдо
+    IF NOT EXISTS (SELECT 1 FROM Dishes_in_Order WHERE order_number = OLD.order_number) THEN
+        -- Удаляем записи из Check
+        DELETE FROM `Check` WHERE check_number = (SELECT check_number FROM `Order` WHERE order_number = OLD.order_number);
+
+        -- Удаляем заказ
+        DELETE FROM `Order` WHERE order_number = OLD.order_number;
+    END IF;
+END$$
+
+DELIMITER ;
 
 SELECT * FROM Order_Log;
 SELECT * FROM  `Order`;
 
 INSERT INTO `Check` (check_number, date_time, payment_type, amount_paid, total_amount, `change`)
-VALUES (116, '2025-04-18 14:30:00', 1, 3500, 3500, 0);
+VALUES (300, '2025-04-18 14:30:00', 1, 3500, 3500, 0);
 
 INSERT INTO `Order` (order_number, check_number, employee, open_date_time, `table`, total_cost, `status`, visitor)
-VALUES (116, 116, 'of_AndreevAA', '2025-04-18 14:35:00', 3, 3500, 1, '4678239712');
+VALUES (300, 300, 'of_AndreevAA', '2025-04-18 14:35:00', 3, 3500, 1, '4678239712');
 
 INSERT INTO Dishes_in_Order (menu_item_id, order_number, quantity) VALUES 
-(4, 116, 2);
+(4, 300, 2);
 
 
 SET SQL_SAFE_UPDATES = 0;
@@ -130,4 +191,4 @@ WHERE order_number = 112 ;
 
 SET SQL_SAFE_UPDATES = 1;
 
-
+DELETE FROM Dishes_in_Order WHERE order_number = 300 AND menu_item_id = 4;
