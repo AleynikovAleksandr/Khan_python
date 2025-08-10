@@ -329,34 +329,3 @@ SELECT * FROM Reservation_Statuses;
 SELECT * FROM Reservation_Order;
 SELECT * FROM Reservation_Tables;
 SELECT * FROM Reservation_Menu;
-
-    select 
-    t.table_name as "Название таблиц",
-    group_concat(r.routine_name) as "Список процедур",
-    t.table_rows as "Кол-во записей в таблицах"
-from 
-    information_schema.tables t
-    left join information_schema.routines r
-        on t.table_name = substring(r.routine_name, 7, length(t.table_name))
-        and r.routine_type = 'PROCEDURE'
-        and r.routine_schema = 'AleynikovAD_db1'
-where 
-    t.table_schema = 'AleynikovAD_db1'
-group by 
-    t.table_name, t.table_rows
-
-union all
-
-select 
-    'Количество процедур', 
-    count(r.routine_name),
-    (select 
-        sum(t.table_rows) 
-    from information_schema.tables t
-    where 
-        t.table_schema = 'AleynikovAD_db1')
-from information_schema.routines r
-where
-    r.routine_type = 'PROCEDURE' 
-    and r.routine_name not in ('structure_create','structure_re_create') 
-    and r.routine_schema = 'AleynikovAD_db1';
