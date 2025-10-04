@@ -97,42 +97,30 @@ class BinarySearchTree:
 # ====================== Пример ======================
 if __name__ == "__main__":
     bst = BinarySearchTree()
-    keys = [50, 30, 70, 20, 40, 60, 80]
+    keys = [15, 10, 20, 8, 12, 18, 26]
     for k in keys:
         bst.insert(k)
 
     print("\nНачальная структура дерева:")
     bst.print_tree()
 
-    print("\nПосле вставки 100:")
-    bst.insert(100)
-    bst.print_tree()
-
-    print("\nПример поиска элементов:")
-    print("Поиск узла 40:")
-    result = bst.search(40)
-    print(f"Поиск 40: {'Найден' if result else 'Не найден'}")
-    
-    print("\nПоиск узла 90:")
-    result = bst.search(90)
-    print(f"Поиск 90: {'Не найден' if result is None else 'Найден'}")
 
     print("\nПример удаления узлов:")
     
     # Удаление узла без потомков (20)
-    print("\nУдаляем узел 20 (без потомков):")
-    bst.delete(20)
+    print("\nУдаляем узел 18 (без потомков):")
+    bst.delete(18)
     bst.print_tree()
     
     # Удаление узла с одним потомком (30)
-    print("\nУдаляем узел 30 (с одним потомком):")
-    bst.delete(30)
+    print("\nУдаляем узел 15(с одним потомком):")
+    bst.delete(15)
     bst.print_tree()
     
     # Удаление узла с двумя потомками (50)
     print("\nПеред удалением узла 50 (с двумя потомками):")
     bst.print_tree()
-    print("\nУдаляем узел 50 (с двумя потомками):")
-    bst.delete(50)
+    print("\nУдаляем узел 26(с двумя потомками):")
+    bst.delete(26)
     bst.print_tree()
     
