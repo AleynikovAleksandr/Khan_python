@@ -1,6 +1,0 @@
-id,priority,details,status,deadline,completed_on,project
-1,1,learn pandas,in progress,2025-06-19,,python coding
-2,1,learn numpy,done,2025-04-10,,python coding
-3,1,learn scipy,postponed,2025-04-10,,python coding
-4,1,read records,scheduled,2025-06-18,,python coding
-5,1,create report,scheduled,2025-06-17,,python coding
