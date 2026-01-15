@@ -309,23 +309,3 @@ INSERT INTO Reservation_Menu (reservation_id, menu_item_id, quantity, serving_ti
 ('БР/24/0000000005', 1, 2, '13:00:00'), 
 ('БР/24/0000000005', 4, 2, '14:00:00'); 
 
-SELECT * FROM Zone_Type;
-SELECT * FROM Waiter;
-SELECT * FROM Visitor;
-SELECT * FROM Guest;
-SELECT * FROM Menu;
-SELECT * FROM Ingredient;
-SELECT * FROM Composition;
-SELECT * FROM Supplier;
-SELECT * FROM Estimate;
-SELECT * FROM Statuses;
-SELECT * FROM Payment_Type;
-SELECT * FROM `Check`;
-SELECT * FROM `Table`;
-SELECT * FROM `Order`;
-SELECT * FROM Dishes_in_Order;
-SELECT * FROM Additional_Dish;
-SELECT * FROM Reservation_Statuses;
-SELECT * FROM Reservation_Order;
-SELECT * FROM Reservation_Tables;
-SELECT * FROM Reservation_Menu;
