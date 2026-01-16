@@ -110,3 +110,12 @@ class Database:
                 (class_name,)
             ) as cur:
                 return await cur.fetchone()
+            
+    async def has_any_conversations(self, tg_user_id: int) -> bool:
+        async with aiosqlite.connect(self.path) as db:
+            async with db.execute(
+                "SELECT 1 FROM conversations WHERE tg_user_id=? LIMIT 1",
+                (tg_user_id,)
+            ) as cur:
+                row = await cur.fetchone()
+                return row is not None
