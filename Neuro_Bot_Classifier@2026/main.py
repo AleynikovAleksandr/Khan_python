@@ -8,22 +8,21 @@ import re
 from dotenv import load_dotenv
 import joblib
 import stanza
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     filters,
     ContextTypes,
+    CallbackQueryHandler,
 )
 import aiosqlite
 from db import Database
 from config import PATHS, SETTINGS, validate_paths
 
-# ─── Загрузка переменных из .env ─────────────────────────────────────────────
 load_dotenv()
 
-# ─── Настройка логирования ───────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -42,7 +41,6 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-# ─── Инициализация Stanza ────────────────────────────────────────────────────
 logger.info("Инициализация Stanza... (может занять некоторое время)")
 stanza.download(SETTINGS["stanza_language"], logging_level='ERROR')
 nlp = stanza.Pipeline(
@@ -53,9 +51,7 @@ nlp = stanza.Pipeline(
 )
 logger.info("Stanza готова к работе.")
 
-# ─── Функция для совместимости с моделью ─────────────────────────────────────
 def lemmatize_text_stanza(texts):
-    """Точно такая же функция, как была при обучении модели"""
     lemmatized_texts = []
     for text in texts:
         text = re.sub(r'[^а-яА-Я\s]', '', text)
@@ -64,9 +60,7 @@ def lemmatize_text_stanza(texts):
         lemmatized_texts.append(' '.join(lemmas))
     return lemmatized_texts
 
-# ─── Предобработка сообщений пользователя ────────────────────────────────────
 def clean_and_lemmatize(text: str) -> str:
-    """Очистка текста от ссылок и мусора + лемматизация"""
     text = re.sub(r'https?://\S+|www\.\S+', '', text)
     text = re.sub(r'[^а-яА-ЯёЁ\s-]', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
@@ -93,18 +87,38 @@ class StickerBot:
             logger.critical(f"Ошибка загрузки модели: {e}")
             raise
 
-        # Правильная инициализация приложения (v20+)
         self.application = ApplicationBuilder().token(self.token).build()
 
-        # Регистрация обработчиков
         self.application.add_handler(CommandHandler("start", self.cmd_start))
-        self.application.add_handler(CommandHandler("stats", self.cmd_stats))
         self.application.add_handler(CommandHandler("history", self.cmd_history))
+        self.application.add_handler(CommandHandler("help", self.cmd_help))
+        self.application.add_handler(CallbackQueryHandler(self.on_help_buttons))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
+
+    async def _send_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+        if getattr(update, "message", None):
+            await update.message.reply_text(text, reply_markup=reply_markup)
+            return
+        query = getattr(update, "callback_query", None)
+        if query and getattr(query, "message", None):
+            await query.message.reply_text(text, reply_markup=reply_markup)
+            return
+        chat = getattr(update, "effective_chat", None)
+        if chat:
+            await context.bot.send_message(chat_id=chat.id, text=text, reply_markup=reply_markup)
+            return
+        user = getattr(update, "effective_user", None)
+        if user:
+            await context.bot.send_message(chat_id=user.id, text=text, reply_markup=reply_markup)
+            return
+        logger.warning("Не удалось о��править сообщение: нет доступного чата/пользователя в update")
 
     async def cmd_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
-        await update.message.reply_text("Привет! Пиши любой текст — я постараюсь ответить картинкой 🎉")
+
+        has_history = await self.db.has_any_conversations(user.id)
+
+        await self._send_text(update, context, "Привет! Пиши любой текст — я постараюсь ответить картинкой 🎉")
 
         uid = await self.db.get_or_create_user(
             tg_user_id=user.id,
@@ -112,22 +126,20 @@ class StickerBot:
             first_name=user.first_name,
             last_name=user.last_name
         )
-        await self.db.save_conversation(uid, user.id, "/start", "GREETING")
+
+        await self.db.save_conversation(
+            user_id=uid,
+            tg_user_id=user.id,
+            user_message="/start",
+            bot_response="GREETING",
+            success=True
+        )
+
+        if not has_history:
+            await self.cmd_help(update, context)
+
         logger.info(f"START | @{user.username or 'no_username'} ({user.id})")
 
-    async def cmd_stats(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        total, success = await self.db.get_user_stats(user.id)
-        rate = (success / total * 100) if total > 0 else 0
-
-        text = (
-            f"📊 Твоя статистика:\n\n"
-            f"Всего сообщений: {total}\n"
-            f"Успешных ответов: {success}\n"
-            f"Процент успеха: {rate:.1f}%"
-        )
-        await update.message.reply_text(text)
-    
     async def cmd_history(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         async with aiosqlite.connect(self.db.path) as db:
@@ -136,16 +148,47 @@ class StickerBot:
                 (user.id,)
             ) as cur:
                 rows = await cur.fetchall()
+
         if not rows:
-            await update.message.reply_text("История диалогов пустая.")
+            await self._send_text(update, context, "История диалогов пустая.")
             return
+
         history_text = ""
         for umsg, bmsg, ts in rows:
             history_text += f"[{ts}] Ты: {umsg}\nБот: {bmsg}\n\n"
-        # Telegram ограничивает длину сообщений, поэтому можно разрезать
-        for i in range(0, len(history_text), 4000):
-            await update.message.reply_text(history_text[i:i+4000])
 
+        for i in range(0, len(history_text), 4000):
+            await self._send_text(update, context, history_text[i:i+4000])
+
+    async def cmd_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        text = (
+            "Доступные команды:\n\n"
+            "/start — запуск бота\n"
+            "/help — справка по командам\n"
+            "/history — история переписки\n\n"
+            "Просто отправь сообщение, и бот подберёт подходящую картинку."
+        )
+
+        keyboard = [
+            [InlineKeyboardButton("▶️ Start", callback_data="cmd_start")],
+            [InlineKeyboardButton("📜 History", callback_data="cmd_history")],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await self._send_text(update, context, text, reply_markup=reply_markup)
+
+    async def on_help_buttons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        if query:
+            await query.answer()
+
+        if not query:
+            return
+
+        if query.data == "cmd_start":
+            await self.cmd_start(update, context)
+        elif query.data == "cmd_history":
+            await self.cmd_history(update, context)
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
@@ -165,13 +208,12 @@ class StickerBot:
         )
 
         try:
-            # Предсказание класса стикера
             label_str = str(self.model.predict([processed_text])[0]).strip()
             sticker_info = await self.db.get_sticker_by_class(label_str)
 
             success = False
             sticker_id = None
-            bot_response_text = ""  # сюда записываем ответ бота
+            bot_response_text = ""
 
             if sticker_info:
                 sid, filename = sticker_info
@@ -193,7 +235,6 @@ class StickerBot:
                 bot_response_text = f"Класс: {label_str}\n\n(нет такого стикера в базе)"
                 await update.message.reply_text(bot_response_text)
 
-            # ─── Сохраняем весь диалог ───────────────────────────────
             await self.db.save_conversation(
                 user_id=uid,
                 tg_user_id=user.id,
@@ -210,10 +251,9 @@ class StickerBot:
                 f"class: {label_str} | ok: {success}"
             )
 
-        except Exception as e:
+        except Exception:
             logger.exception("Ошибка обработки сообщения")
             await update.message.reply_text("Внутренняя ошибка... Попробуй позже")
-
 
     async def sync_stickers(self):
         items = []
@@ -230,34 +270,47 @@ class StickerBot:
             logger.warning("В папке stickers не найдено .png файлов!")
 
     def run(self):
-        # Инициализация базы и стикеров
         asyncio.run(self.db.setup())
         asyncio.run(self.sync_stickers())
 
         logger.info(f"Бот запущен • База данных: {PATHS['database']}")
 
-        # Запуск polling — это блокирующий вызов, НЕ нужно await и НЕ нужно asyncio.run сверху
-        self.application.run_polling(
-            allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True,
-            poll_interval=0.5,
-            timeout=10
-        )
+        created_loop = False
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            created_loop = True
+
+        try:
+            self.application.run_polling(drop_pending_updates=True)
+        except KeyboardInterrupt:
+            logger.info("Остановка бота (KeyboardInterrupt).")
+        except Exception:
+            logger.exception("Ошибка при запуске polling.")
+        finally:
+            if created_loop:
+                try:
+                    loop.stop()
+                except Exception:
+                    pass
+                try:
+                    loop.close()
+                except Exception:
+                    pass
 
 
 if __name__ == "__main__":
     token = os.getenv("TELEGRAM_TOKEN")
     if not token:
-        logger.critical("TELEGRAM_TOKEN не найден ни в .env, ни в переменных окружения!")
+        logger.critical(
+            "TELEGRAM_TOKEN не найден ни в .env, ни в переменных окружения!"
+        )
         exit(1)
 
     validate_paths()
 
     bot = StickerBot(token)
-    # Запускаем polling в правильном асинхронном контексте
-    asyncio.run(bot.application.run_polling(
-        allowed_updates=Update.ALL_TYPES,
-        drop_pending_updates=True,
-        poll_interval=0.5,
-        timeout=10
-    ))
+
+    bot.run()
