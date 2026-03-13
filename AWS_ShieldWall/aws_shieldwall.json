@@ -1,0 +1,111 @@
+{
+  "domain": "Cloud Infrastructure Security",
+  "current_date": "March 2026",
+  "description": "Cloud Infrastructure Security focuses on protecting cloud computing environments, including compute, storage, networking, applications, and data from cyber threats and misconfigurations.",
+  "company_examples": [
+    "Amazon Web Services (AWS)"
+  ],
+  "objective": "Analyze AWS cloud infrastructure security, identify key threats and vulnerabilities, evaluate risk for each infrastructure layer, and define effective protection and monitoring strategies.",
+
+  "objectives": [
+    "Secure cloud infrastructure from cyberattacks",
+    "Protect sensitive data in cloud storage",
+    "Ensure proper identity and access management",
+    "Detect and respond to security incidents",
+    "Maintain compliance with regulatory standards"
+  ],
+
+  "infrastructure_layers": [
+    {
+      "layer": "Cloud Platform Security",
+      "description": "Protection of compute, storage, and network resources within cloud environments.",
+      "key_services": [
+        "AWS EC2 security groups",
+        "S3 bucket policies & encryption",
+        "VPC network isolation",
+        "Security monitoring via AWS GuardDuty and Security Hub"
+      ],
+      "risk_level": "high"
+    },
+    {
+      "layer": "Identity & Access Management (IAM)",
+      "description": "Controls ensuring proper authentication, authorization, and identity governance.",
+      "key_services": [
+        "Role-based access control (RBAC)",
+        "Multi-factor authentication (MFA)",
+        "Service accounts and roles",
+        "Audit logging with AWS CloudTrail"
+      ],
+      "risk_level": "critical"
+    },
+    {
+      "layer": "Application Security",
+      "description": "Security of applications and APIs running on cloud infrastructure.",
+      "key_services": [
+        "API Gateway with WAF",
+        "Static and dynamic code analysis",
+        "Runtime application monitoring",
+        "Secure DevOps practices (DevSecOps)"
+      ],
+      "risk_level": "high"
+    },
+    {
+      "layer": "Data Protection",
+      "description": "Ensuring confidentiality, integrity, and availability of data.",
+      "key_services": [
+        "Encryption with AWS KMS",
+        "Encrypted storage for S3 and EBS",
+        "Backup and disaster recovery solutions",
+        "Data loss prevention (DLP) tools"
+      ],
+      "risk_level": "critical"
+    },
+    {
+      "layer": "Threat Detection & Response",
+      "description": "Monitoring, alerting, and incident response across cloud infrastructure.",
+      "key_services": [
+        "Security Information and Event Management (SIEM)",
+        "Behavioral analytics and anomaly detection",
+        "AWS Detective and automated Lambda response",
+        "Incident response playbooks"
+      ],
+      "risk_level": "critical"
+    },
+    {
+      "layer": "Compliance & Governance",
+      "description": "Ensuring adherence to regulatory and organizational security standards.",
+      "standards": [
+        "ISO 27001",
+        "SOC 2",
+        "NIST CSF",
+        "HIPAA/HITRUST"
+      ],
+      "risk_level": "medium"
+    }
+  ],
+
+  "major_security_threats": [
+    "Cloud misconfigurations (public buckets, open ports)",
+    "Compromised credentials and unauthorized access",
+    "Distributed Denial of Service (DDoS) attacks",
+    "Data exfiltration and leakage",
+    "Insider threats and privilege abuse"
+  ],
+
+  "security_strategies": [
+    "Zero Trust Architecture",
+    "Defense-in-depth with multi-layer security controls",
+    "Continuous monitoring and automated alerting",
+    "Periodic penetration testing and vulnerability scanning",
+    "Security automation and orchestration",
+    "Regular audits and compliance checks"
+  ],
+
+  "emerging_trends_2026": [
+    "AI-driven threat detection for cloud workloads",
+    "Policy-as-code for automated compliance",
+    "Agentless cloud security posture management",
+    "Integration of quantum-resistant encryption",
+    "Hybrid and multi-cloud secure architectures"
+  ]
+}
