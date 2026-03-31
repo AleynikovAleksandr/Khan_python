@@ -1,0 +1,5 @@
+columns format version: 1
+3 columns:
+`ShipperKey` UInt64
+`ShipperID` Int32
+`ShipperName` String

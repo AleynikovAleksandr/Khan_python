@@ -1,0 +1,9 @@
+columns format version: 1
+7 columns:
+`TheDate` Date
+`ProductName` String
+`CustomerName` String
+`EmployeeName` String
+`ShipperName` String
+`Quantity` Int32
+`Total` Float64

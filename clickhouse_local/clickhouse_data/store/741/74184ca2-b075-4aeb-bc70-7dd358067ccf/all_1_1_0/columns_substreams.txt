@@ -1,0 +1,9 @@
+columns substreams version: 1
+3 columns:
+1 substreams for column `ShipperKey`:
+	ShipperKey
+1 substreams for column `ShipperID`:
+	ShipperID
+2 substreams for column `ShipperName`:
+	ShipperName.size
+	ShipperName

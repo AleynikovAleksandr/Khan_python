@@ -1,0 +1,13 @@
+columns format version: 1
+11 columns:
+`TimeKey` UInt64
+`TheDate` Date
+`DayOfWeek` UInt8
+`Month` UInt8
+`Year` UInt16
+`Quarter` UInt8
+`DayOfYear` UInt16
+`Holiday` UInt8
+`Weekend` UInt8
+`YearMonth` UInt32
+`WeekOfYear` UInt8
