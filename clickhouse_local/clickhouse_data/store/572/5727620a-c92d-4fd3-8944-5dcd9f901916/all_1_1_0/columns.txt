@@ -1,8 +1,0 @@
-columns format version: 1
-6 columns:
-`ProductKey` UInt64
-`ProductID` Int32
-`ProductName` String
-`SupplierName` String
-`CategoyName` String
-`ListUnitPrice` Float64

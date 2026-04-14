@@ -1,1 +1,0 @@
-{"columns":[{"kind":"Default","name":"EmployeeID","num_defaults":0,"num_rows":2},{"kind":"Default","name":"EmployeeKey","num_defaults":0,"num_rows":2},{"kind":"Default","name":"EmployeeName","num_defaults":0,"num_rows":2},{"kind":"Default","name":"HireDate","num_defaults":0,"num_rows":2}],"types_serialization_versions":{"string":1},"version":1}
