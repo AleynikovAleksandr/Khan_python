@@ -1,0 +1,12 @@
+columns format version: 1
+10 columns:
+`TimeKey` UInt64
+`CustomerKey` UInt64
+`ShipperKey` UInt64
+`ProductKey` UInt64
+`EmployeeKey` UInt64
+`RequiredDate` Date
+`LineItemFreight` Float64
+`LineItemTotal` Float64
+`LineItemQuantity` Int32
+`LineItemDiscount` Float64

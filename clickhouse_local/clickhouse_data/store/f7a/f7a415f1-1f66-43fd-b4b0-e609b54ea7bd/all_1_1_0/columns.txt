@@ -1,0 +1,6 @@
+columns format version: 1
+4 columns:
+`EmployeeKey` UInt64
+`EmployeeID` Int32
+`EmployeeName` String
+`HireDate` Date

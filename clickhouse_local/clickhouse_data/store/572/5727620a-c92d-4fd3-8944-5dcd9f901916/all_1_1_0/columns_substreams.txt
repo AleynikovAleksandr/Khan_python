@@ -1,0 +1,17 @@
+columns substreams version: 1
+6 columns:
+1 substreams for column `ProductKey`:
+	ProductKey
+1 substreams for column `ProductID`:
+	ProductID
+2 substreams for column `ProductName`:
+	ProductName.size
+	ProductName
+2 substreams for column `SupplierName`:
+	SupplierName.size
+	SupplierName
+2 substreams for column `CategoyName`:
+	CategoyName.size
+	CategoyName
+1 substreams for column `ListUnitPrice`:
+	ListUnitPrice

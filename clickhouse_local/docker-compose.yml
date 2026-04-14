@@ -1,0 +1,20 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    ulimits:
+      nofile:
+        soft: 524288
+        hard: 524288
+    volumes:
+      - ./clickhouse_data:/var/lib/clickhouse
+      #- ./config:/etc/clickhouse-server/config.d
+      #- ./config/users.d:/etc/clickhouse-server/users.d
+    environment:
+      - CLICKHOUSE_USER=alex
+      - CLICKHOUSE_PASSWORD=Aa27299620
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    restart: unless-stopped
