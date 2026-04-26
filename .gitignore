@@ -13,6 +13,7 @@ venv/
 .env/
 .venv/
 env/
+Sane_hdfs/
 CH_Engines/
 
 # Файлы IDE и редакторов

@@ -32,6 +32,8 @@ services:
       - YARN-SITE.XML_yarn.nodemanager.aux-services=mapreduce_shuffle
       - YARN-SITE.XML_yarn.nodemanager.pmem-check-enabled=false
       - YARN-SITE.XML_yarn.nodemanager.vmem-check-enabled=false
+      - HDFS-SITE.XML_dfs.webhdfs.enabled=true
+      - HDFS-SITE.XML_dfs.namenode.http-address=0.0.0.0:9870
 
     volumes:
       - ./hadoop_data:/opt/hadoop/data
