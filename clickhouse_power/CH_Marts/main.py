@@ -1,5 +1,5 @@
 import pandas as pd
-from clickhouse_config import ClickHouseClient
+from clickhouse_power.CH_Marts.clickhouse_config import ClickHouseClient
 
 
 def load_data():

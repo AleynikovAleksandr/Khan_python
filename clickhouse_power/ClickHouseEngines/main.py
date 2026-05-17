@@ -1,6 +1,6 @@
 import clickhouse_connect
 from datetime import date
-from config import ClickHouseClient
+from clickhouse_power.ClickHouseEngines.config import ClickHouseClient
 
 
 def create_and_fill_tables():

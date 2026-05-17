@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-connect
+  namespace: spark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-connect
+  template:
+    metadata:
+      labels:
+        app: spark-connect
+    spec:
+      containers:
+        - name: spark-connect
+          image: apache-spark:latest
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - /bin/bash
+            - -c
+            - |
+              /opt/spark/sbin/start-connect-server.sh \
+                --bind-address 0.0.0.0 \
+                --conf spark.connect.grpc.binding.port=15002 \
+                --conf spark.connect.grpc.ui.port=4040
+
+          env:
+            - name: SPARK_NO_DAEMONIZE
+              value: "true"
+
+            - name: PYSPARK_PYTHON
+              value: python3
+
+          ports:
+            - containerPort: 15002
+            - containerPort: 4040

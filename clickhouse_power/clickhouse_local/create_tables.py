@@ -1,5 +1,5 @@
-from db_client import ClickHouseClient
-from config import DatabaseConfig
+from clickhouse_power.clickhouse_local.db_client import ClickHouseClient
+from clickhouse_power.clickhouse_local.config import DatabaseConfig
 
 def setup_database():
     db = ClickHouseClient()

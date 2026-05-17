@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history
+  namespace: spark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history
+  template:
+    metadata:
+      labels:
+        app: spark-history
+    spec:
+      containers:
+        - name: spark-history
+          image: apache-spark:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 18080
+          env:
+            - name: SPARK_HISTORY_OPTS
+              value: -Dspark.history.fs.logDirectory=file:///opt/spark/events
+          command:
+            - /bin/bash
+            - -c
+            - |
+              /opt/spark/sbin/start-history-server.sh
+              tail -f /dev/null

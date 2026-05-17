@@ -1,4 +1,4 @@
-from db_client import ClickHouseClient
+from clickhouse_power.clickhouse_local.db_client import ClickHouseClient
 from datetime import date
 
 def insert_data():

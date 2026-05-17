@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: spark-worker
+  namespace: spark
+spec:
+  serviceName: spark-worker-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spark-worker
+  template:
+    metadata:
+      labels:
+        app: spark-worker
+    spec:
+      serviceAccountName: spark
+      containers:
+        - name: spark-worker
+          image: apache-spark:latest
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - /bin/bash
+            - -c
+            - |
+              /opt/spark/sbin/start-worker.sh spark://spark-master.spark.svc.cluster.local:7077
+              tail -f /dev/null
+
+          env:
+            - name: SPARK_WORKER_MEMORY
+              value: "4g"
+            - name: SPARK_WORKER_CORES
+              value: "4"
+
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "4Gi"
+              cpu: "4"
+
+          ports:
+            - containerPort: 8081

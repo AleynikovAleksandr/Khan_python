@@ -1,4 +1,4 @@
-from db_client import ClickHouseClient
+from clickhouse_power.clickhouse_local.db_client import ClickHouseClient
 
 class Analytics:
 

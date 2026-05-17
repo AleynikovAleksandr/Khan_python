@@ -1,5 +1,5 @@
 import clickhouse_connect
-from config import DatabaseConfig
+from clickhouse_power.clickhouse_local.config import DatabaseConfig
 
 class ClickHouseClient:
     def __init__(self):
